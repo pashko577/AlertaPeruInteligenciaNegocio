@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alerta Perú: emergencias registradas por INDECI, 2003–2025</title>
+  <meta name="description" content="Consulta y análisis de las emergencias registradas en el SINPAD de INDECI entre 2003 y 2025.">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    // Aplica el tema antes de pintar: elección guardada o, si no hay, la del sistema.
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('alerta-tema'); } catch (e) {}
+      if (t !== 'claro' && t !== 'oscuro') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro';
+      document.documentElement.dataset.tema = t;
+    })();
+  </script>
+  <link rel="preload" href="vendor/fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/alerta.css">
+</head>
+<body>
+  <a class="saltar" href="#contenido">Ir al contenido</a>
+
+  <header class="banda">
+    <svg class="banda__curvas" aria-hidden="true" focusable="false"></svg>
+    <div class="contenedor banda__interior">
+      <div>
+        <p class="marca">Alerta Perú</p>
+        <p class="banda__sub">Emergencias registradas por INDECI en el SINPAD, de 2003 a 2025</p>
+      </div>
+      <fieldset class="tema-selector">
+        <legend>Tema de la página</legend>
+        <input type="radio" name="tema" id="tema-claro" value="claro"><label for="tema-claro">Claro</label>
+        <input type="radio" name="tema" id="tema-oscuro" value="oscuro"><label for="tema-oscuro">Oscuro</label>
+      </fieldset>
+    </div>
+  </header>
+
+  <main id="contenido" class="contenedor">
+
+    <!-- Consulta escrita como una frase: cada parte resaltada es un selector -->
+    <section class="consulta" aria-labelledby="consulta-titulo">
+      <h1 id="consulta-titulo" class="visually-hidden">Consulta</h1>
+      <form id="frase" class="frase" autocomplete="off">
+        <span>Mostrar</span>
+        <label class="visually-hidden" for="f-medida">Medida</label>
+        <select id="f-medida" class="hueco">
+          <option value="emergencias">emergencias</option>
+          <option value="damnificados">damnificados</option>
+          <option value="afectados">afectados</option>
+          <option value="fallecidos">fallecidos</option>
+          <option value="viviendasDestruidas">viviendas destruidas</option>
+        </select>
+        <span>en</span>
+        <label class="visually-hidden" for="f-departamento">Departamento</label>
+        <span class="par"><select id="f-departamento" class="hueco"><option value="">todo el Perú</option></select><span>,</span></span>
+        <span class="frase__opcional" id="g-provincia" hidden>
+          <span>provincia</span>
+          <label class="visually-hidden" for="f-provincia">Provincia</label>
+          <span class="par"><select id="f-provincia" class="hueco"><option value="">cualquiera</option></select><span>,</span></span>
+        </span>
+        <span class="frase__opcional" id="g-distrito" hidden>
+          <span>distrito</span>
+          <label class="visually-hidden" for="f-distrito">Distrito</label>
+          <span class="par"><select id="f-distrito" class="hueco"><option value="">cualquiera</option></select><span>,</span></span>
+        </span>
+        <span>entre</span>
+        <label class="visually-hidden" for="f-desde">Desde el año</label>
+        <select id="f-desde" class="hueco"></select>
+        <span>y</span>
+        <label class="visually-hidden" for="f-hasta">Hasta el año</label>
+        <span class="par"><select id="f-hasta" class="hueco"></select><span>,</span></span>
+        <span>por</span>
+        <label class="visually-hidden" for="f-peligro">Peligro</label>
+        <span class="par"><select id="f-peligro" class="hueco"><option value="">cualquier peligro</option></select><span>,</span></span>
+        <span>en</span>
+        <label class="visually-hidden" for="f-region">Región natural</label>
+        <span class="par"><select id="f-region" class="hueco"><option value="">cualquier región natural</option></select><span>.</span></span>
+      </form>
+
+      <div class="respuesta" aria-live="polite" aria-atomic="true">
+        <p class="respuesta__cifra" id="r-cifra">&nbsp;</p>
+        <p class="respuesta__texto" id="r-texto"></p>
+        <button type="button" class="enlace" id="b-restablecer" hidden>Ver todo el Perú, 2003–2025</button>
+      </div>
+    </section>
+
+    <div class="aviso" id="aviso-error" role="alert" hidden>
+      <p id="aviso-texto"></p>
+      <button type="button" class="boton" id="b-reintentar">Reintentar</button>
+    </div>
+
+    <nav class="pestanas" role="tablist" aria-label="Secciones">
+      <button role="tab" id="t-panorama" aria-controls="p-panorama" aria-selected="true">Panorama</button>
+      <button role="tab" id="t-mapa" aria-controls="p-mapa" aria-selected="false" tabindex="-1">Mapa</button>
+      <button role="tab" id="t-registros" aria-controls="p-registros" aria-selected="false" tabindex="-1">Registros</button>
+      <button role="tab" id="t-acerca" aria-controls="p-acerca" aria-selected="false" tabindex="-1">Sobre los datos</button>
+    </nav>
+
+    <!-- PANORAMA -->
+    <section role="tabpanel" id="p-panorama" aria-labelledby="t-panorama" class="panel-seccion">
+      <dl class="cifras" id="cifras"></dl>
+
+      <figure class="lamina lamina--ancha" id="fig-anual">
+        <figcaption class="lamina__cabecera">
+          <h2 class="lamina__titulo" id="anual-titulo">Por año</h2>
+          <button type="button" class="enlace lamina__alternar" data-alterna="anual">Ver como tabla</button>
+        </figcaption>
+        <div class="lamina__grafico lamina__grafico--anual"><canvas id="c-anual" role="img" aria-labelledby="anual-titulo"></canvas></div>
+        <div class="lamina__tabla" id="tabla-anual" hidden></div>
+      </figure>
+
+      <div class="doble">
+        <figure class="lamina" id="fig-peligro">
+          <figcaption class="lamina__cabecera">
+            <h2 class="lamina__titulo" id="peligro-titulo">Por peligro</h2>
+            <button type="button" class="enlace lamina__alternar" data-alterna="peligro">Ver como tabla</button>
+          </figcaption>
+          <ul class="leyenda" id="leyenda-peligro"></ul>
+          <div class="lamina__grafico" id="caja-peligro"><canvas id="c-peligro" role="img" aria-labelledby="peligro-titulo"></canvas></div>
+          <div class="lamina__tabla" id="tabla-peligro" hidden></div>
+        </figure>
+
+        <figure class="lamina" id="fig-territorio">
+          <figcaption class="lamina__cabecera">
+            <h2 class="lamina__titulo" id="territorio-titulo">Por departamento</h2>
+            <button type="button" class="enlace lamina__alternar" data-alterna="territorio">Ver como tabla</button>
+          </figcaption>
+          <p class="lamina__nota" id="territorio-nota"></p>
+          <div class="lamina__grafico" id="caja-territorio"><canvas id="c-territorio" role="img" aria-labelledby="territorio-titulo"></canvas></div>
+          <div class="lamina__tabla" id="tabla-territorio" hidden></div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- MAPA -->
+    <section role="tabpanel" id="p-mapa" aria-labelledby="t-mapa" class="panel-seccion" hidden>
+      <div class="mapa-disposicion">
+        <div class="mapa-lienzo">
+          <nav class="miga" aria-label="Nivel del mapa" id="miga"></nav>
+          <div id="mapa" class="mapa" aria-label="Mapa coroplético del Perú"></div>
+        </div>
+        <aside class="mapa-lateral">
+          <h2 class="lamina__titulo" id="mapa-titulo">Emergencias por departamento</h2>
+          <div class="escala" id="escala"></div>
+          <div class="ficha" id="ficha">
+            <p class="ficha__vacia">Pasa el cursor o toca un territorio para ver sus cifras. Haz clic para ver su interior.</p>
+          </div>
+          <p class="lamina__nota">Cada territorio se pinta según sus registros. La fuente indica el distrito de cada emergencia, no su punto exacto, por eso el mapa no usa marcadores.</p>
+          <button type="button" class="enlace" data-alterna="mapa">Ver como tabla</button>
+        </aside>
+      </div>
+      <div class="lamina__tabla" id="tabla-mapa" hidden></div>
+    </section>
+
+    <!-- REGISTROS -->
+    <section role="tabpanel" id="p-registros" aria-labelledby="t-registros" class="panel-seccion" hidden>
+      <p id="reg-resumen" class="registros-cabecera__texto"></p>
+      <div class="registros-cabecera">
+        <div class="ordenar">
+          <label for="reg-orden">Ordenar por</label>
+          <select id="reg-orden">
+            <option value="fecha">fecha</option>
+            <option value="fallecidos">fallecidos</option>
+            <option value="damnificados">damnificados</option>
+            <option value="afectados">afectados</option>
+            <option value="viviendasDestruidas">viviendas destruidas</option>
+            <option value="departamento">lugar (departamento)</option>
+            <option value="peligro">peligro</option>
+          </select>
+          <label class="visually-hidden" for="reg-dir">Sentido del orden</label>
+          <select id="reg-dir"></select>
+        </div>
+        <label class="tamano">Filas por página
+          <select id="reg-tamano">
+            <option>20</option><option>50</option><option>100</option>
+          </select>
+        </label>
+      </div>
+      <div class="tabla-desplazable">
+        <table class="registros" id="tabla-registros">
+          <caption class="visually-hidden">Registros de emergencias según la consulta</caption>
+          <thead>
+            <tr>
+              <th scope="col"><button type="button" data-orden="fecha">Fecha</button></th>
+              <th scope="col"><button type="button" data-orden="departamento">Lugar</button></th>
+              <th scope="col"><button type="button" data-orden="peligro">Peligro</button></th>
+              <th scope="col" class="num"><button type="button" data-orden="fallecidos">Fallecidos</button></th>
+              <th scope="col" class="num"><button type="button" data-orden="damnificados">Damnificados</button></th>
+              <th scope="col" class="num"><button type="button" data-orden="afectados">Afectados</button></th>
+              <th scope="col" class="num"><button type="button" data-orden="viviendasDestruidas">Viviendas destruidas</button></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="paginacion">
+        <button type="button" class="boton" id="reg-anterior">Anterior</button>
+        <span id="reg-pagina" aria-live="polite"></span>
+        <button type="button" class="boton" id="reg-siguiente">Siguiente</button>
+      </div>
+    </section>
+
+    <!-- SOBRE LOS DATOS -->
+    <section role="tabpanel" id="p-acerca" aria-labelledby="t-acerca" class="panel-seccion acerca" hidden>
+      <div class="acerca__texto">
+        <h2>De dónde vienen los datos</h2>
+        <p>Los registros provienen del dataset <a href="https://www.datosabiertos.gob.pe/dataset/emergencias-y-daños-nivel-nacional-por-departamento" rel="noopener" target="_blank">Emergencias y Evaluación de Daños – SINPAD 2003–2025</a>, publicado por el Instituto Nacional de Defensa Civil (INDECI) en la Plataforma Nacional de Datos Abiertos. Cada registro es una emergencia evaluada en un distrito.</p>
+        <p id="acerca-carga">Consultando la fecha de la última carga…</p>
+
+        <h2>Cómo leer las cifras</h2>
+        <ul>
+          <li><strong>Sin dato no es cero.</strong> Cuando la fuente deja un valor en blanco, aquí se muestra como <em class="sin-dato">sin dato</em> y no se suma.</li>
+          <li><strong>Educación cambia en 2019.</strong> Hasta 2018 se registraban centros educativos; desde 2019, aulas. Las dos series no son comparables.</li>
+          <li><strong>La ayuda humanitaria no tiene unidad verificada.</strong> El diccionario indica toneladas y miles de soles, pero las magnitudes no son coherentes con esas unidades. Sus valores solo aparecen en el detalle de cada registro.</li>
+          <li><strong>Más registros no significa más riesgo.</strong> El conteo también depende de cuántas emergencias se reportan al SINPAD en cada lugar y año.</li>
+          <li><strong>El mapa muestra territorios, no puntos.</strong> La fuente ubica cada emergencia en su distrito, sin coordenadas. Los límites son los del INEI (actualización 2023).</li>
+          <li><strong>Lima aparece dividida.</strong> INDECI separa Lima Metropolitana (provincia de Lima) de Lima Provincias (las otras nueve provincias). En el mapa departamental se suman en un solo polígono.</li>
+        </ul>
+
+        <h2>Qué no es esta herramienta</h2>
+        <p>No es un sistema oficial de alertas, de predicción ni de coordinación de ayuda. Es una herramienta de análisis de registros históricos.</p>
+
+        <h2>Créditos</h2>
+        <p>Datos: INDECI, SINPAD, bajo los términos de la Plataforma Nacional de Datos Abiertos. Límites territoriales: IDE-INEI, versión GeoJSON de <a href="https://github.com/lincolneulogio/peru-geojson" rel="noopener" target="_blank">peru-geojson</a> (licencia MIT). Tipografía: Archivo, de Omnibus-Type (licencia SIL OFL).</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pie contenedor">
+    <p>Fuente: INDECI, Sistema de Información Nacional para la Respuesta y Rehabilitación (SINPAD). Proyecto académico del curso de Inteligencia de Negocios.</p>
+  </footer>
+
+  <!-- Detalle de un registro -->
+  <div class="modal fade" id="modal-detalle" tabindex="-1" aria-labelledby="detalle-titulo" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content detalle">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title" id="detalle-titulo"></h2>
+            <p class="detalle__lugar" id="detalle-lugar"></p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body" id="detalle-cuerpo"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="vendor/chartjs/chart.umd.min.js"></script>
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

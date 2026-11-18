@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: alerta-peru
+  config:
+    # Lee MONGODB_URI y MONGODB_DATABASE desde backend/.env si existe
+    # (formato CLAVE=valor). También pueden venir de variables de entorno.
+    import: optional:file:.env[.properties]
+  mongodb:
+    # Usa un usuario de Atlas de SOLO LECTURA para el backend.
+    uri: ${MONGODB_URI}
+    database: ${MONGODB_DATABASE:alerta_peru}
+  data:
+    mongodb:
+      # Los índices los crea el ETL (decisión documentada); el backend no los toca.
+      auto-index-creation: false
+
+server:
+  port: ${SERVER_PORT:8080}
+  compression:
+    enabled: true
+    mime-types: application/json,application/geo+json,text/html,text/css,application/javascript
+
+logging:
+  level:
+    org.mongodb.driver: warn

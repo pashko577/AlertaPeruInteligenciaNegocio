@@ -1,0 +1,28 @@
+# Secretos
+.env
+*.env
+!.env.example
+application-local.yml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Salidas del ETL
+etl/logs/
+
+# Java / Maven
+backend/target/
+*.class
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log
