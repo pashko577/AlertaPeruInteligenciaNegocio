@@ -83,6 +83,34 @@ Abre <http://localhost:8080>. En Linux o macOS usa `./mvnw` en lugar de `mvnw.cm
 > Los archivos `.env` contienen contraseñas y están en `.gitignore`. Nunca se
 > suben al repositorio.
 
+### 4. Desplegar en Render (opcional)
+
+El backend sirve la API y la página. La base ya está en Atlas, así que solo
+se despliega `backend/` como contenedor Docker ([Dockerfile](backend/Dockerfile)).
+
+1. En Atlas → *Network Access*, permite `0.0.0.0/0`. El acceso sigue
+   protegido por usuario y contraseña, y el backend usa un usuario de solo
+   lectura.
+2. En [Render](https://render.com) → **New → Web Service**, elige este
+   repositorio y configura:
+   - **Language:** Docker
+   - **Root Directory:** `backend`
+   - **Instance type:** Free
+   - **Environment:** agrega `MONGODB_URI` con la URI del usuario de solo lectura.
+3. Render compila la imagen, asigna el puerto en `PORT` y publica una URL
+   `https://<nombre>.onrender.com`. Cada `git push` vuelve a desplegar.
+
+En el plan gratuito el servicio se suspende tras unos minutos sin visitas. La
+primera visita después tarda alrededor de un minuto.
+
+Para probar la imagen en local:
+
+```bash
+cd backend
+docker build -t alerta-peru .
+docker run -p 8080:8080 -e MONGODB_URI="..." alerta-peru
+```
+
 ## Cómo se comprueba que los datos son correctos
 
 | Comprobación | Comando | Resultado |
