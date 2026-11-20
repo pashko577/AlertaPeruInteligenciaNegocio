@@ -41,7 +41,7 @@ dígitos), `regionNatural`, `tipoPeligro`, `peligro`.
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/emergencias` | Listado paginado. Además: `page`, `size` (≤ 100), `sort` (`fecha`, `departamento`, `peligro`, `fallecidos`, `damnificados`, `afectados`), `dir` (`asc`/`desc`) |
+| GET | `/api/emergencias` | Listado paginado. Además: `page`, `size` (≤ 100), `sort` (`fecha`, `departamento`, `peligro`, `fallecidos`, `damnificados`, `afectados`, `viviendasDestruidas`), `dir` (`asc`/`desc`) |
 | GET | `/api/emergencias/{id}` | Detalle con todos los indicadores y notas de calidad |
 | GET | `/api/estadisticas/resumen` | KPIs |
 | GET | `/api/estadisticas/por-anio` | Serie anual |

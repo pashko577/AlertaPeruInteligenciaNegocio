@@ -1,6 +1,6 @@
 # Guion de la demostración: ALERTA PERÚ
 
-Duración: unos **10 minutos**. Todas las cifras de este guion salen de la
+Duración: unos **10 minutos**. Es el bloque 11 de [GUIA_PRESENTACION.md](GUIA_PRESENTACION.md), que explica el proyecto antes de la demo. Todas las cifras de este guion salen de la
 aplicación con los datos cargados en Atlas y cuadran con el CSV original
 (`python etl/cuadrar_api.py`).
 

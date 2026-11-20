@@ -13,7 +13,7 @@ Proyecto académico del curso de Inteligencia de Negocios. Fuente: INDECI,
 BD_2003-2025_EMERGENCIAS.csv
         │  etl/ (Python): limpia, valida y carga por lotes
         ▼
-MongoDB Atlas (M0, gratuito) ── base alerta_peru: emergencias, territorios, cargas
+MongoDB Atlas (M0, gratuito) ── base alerta_peru: emergencias, territorios, metadatos_carga
         │  usuario de solo lectura
         ▼
 backend/ (Spring Boot 4, Java 25, hexagonal) ── /api/...
@@ -42,7 +42,8 @@ Página web (HTML + CSS + JS, Chart.js, Leaflet) ── http://localhost:8080
 | [DECISION_MAPA_COROPLETICO.md](docs/DECISION_MAPA_COROPLETICO.md) | Por qué el mapa pinta territorios y no usa puntos |
 | [DECISION_DISENO_FRONTEND.md](docs/DECISION_DISENO_FRONTEND.md) | Decisiones de diseño de la página |
 | [DECISION_ARQUITECTURA_HEXAGONAL.md](docs/DECISION_ARQUITECTURA_HEXAGONAL.md) | Por qué el backend es hexagonal y cómo se organiza |
-| [GUION_DEMO.md](docs/GUION_DEMO.md) | Guion para la exposición |
+| [GUIA_PRESENTACION.md](docs/GUIA_PRESENTACION.md) | Guía para presentar el proyecto: problema, datos, MongoDB, arquitectura |
+| [GUION_DEMO.md](docs/GUION_DEMO.md) | Guion de la demo en vivo |
 
 ## Cómo ejecutarlo
 

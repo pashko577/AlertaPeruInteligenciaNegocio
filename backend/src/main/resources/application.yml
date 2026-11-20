@@ -4,7 +4,9 @@ spring:
   config:
     # Lee MONGODB_URI y MONGODB_DATABASE desde backend/.env si existe
     # (formato CLAVE=valor). También pueden venir de variables de entorno.
-    import: optional:file:.env[.properties]
+    # Dos rutas: al ejecutar desde backend/ (mvnw) o desde la raíz del
+    # proyecto (botón Run de VS Code).
+    import: optional:file:.env[.properties],optional:file:backend/.env[.properties]
   mongodb:
     # Usa un usuario de Atlas de SOLO LECTURA para el backend.
     uri: ${MONGODB_URI}
